@@ -11,7 +11,8 @@ app = Flask(__name__)
 
 # 設定資料庫配置（MySQL）
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway"
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
