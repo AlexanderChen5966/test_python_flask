@@ -5,8 +5,8 @@ import mysql.connector
 import os
 
 app = Flask(__name__)
-app.config['ENV'] = 'production'
-app.config['DEBUG'] = False
+# app.config['ENV'] = 'production'
+# app.config['DEBUG'] = False
 
 # 資料庫連線
 # def get_db():
