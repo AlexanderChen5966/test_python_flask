@@ -7,10 +7,11 @@ app = Flask(__name__)
 swagger = Swagger(app)
 
 # 環境變數設定
-DB_USER = os.getenv('DB_USER', 'root')
-DB_PASSWORD = os.getenv('DB_PASSWORD', '')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_NAME = os.getenv('DB_NAME', 'flask_api')
+# DB_USER = os.getenv('DB_USER', 'root')
+# DB_PASSWORD = os.getenv('DB_PASSWORD', '')
+# DB_HOST = os.getenv('DB_HOST', 'localhost')
+# DB_NAME = os.getenv('DB_NAME', 'flask_api')
+
 # DB_USER = "root"
 # DB_PASSWORD = "EkvRRMabtntpCBNAxYvmfHsQVhQCMapi"
 # DB_HOST = "mysql.railway.internal"
@@ -22,8 +23,8 @@ DB_NAME = os.getenv('DB_NAME', 'flask_api')
 # DB_NAME=railway
 
 # SQLAlchemy 資料庫 URI
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@switchyard.proxy.rlwy.net:47015/railway'
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@switchyard.proxy.rlwy.net:47015/railway'
 # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@mysql.railway.internal:3306/railway'
 
 # mysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@mysql.railway.internal:3306/railway
