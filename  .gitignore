@@ -1,1 +1,4 @@
+# 環境設定
 .env
+.venv/
+venv/
