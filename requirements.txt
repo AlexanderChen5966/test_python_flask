@@ -1,4 +1,7 @@
 flask
 flasgger
+flask_sqlalchemy
+pymysql
 gunicorn
+
 
