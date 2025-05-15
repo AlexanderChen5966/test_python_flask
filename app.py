@@ -68,9 +68,9 @@ def add_user():
     return jsonify({"message": "User created successfully"}), 201
 
 # 初始化資料庫一次
-@app.before_first_request
-def setup():
-    init_db()
+# @app.before_first_request
+# def setup():
+#     init_db()
 
 # 啟動 Flask
 if __name__ == '__main__':
