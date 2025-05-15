@@ -203,7 +203,9 @@ def line_reply():
 
 # 啟動 Flask 應用
 if __name__ == "__main__":
-    app.run(debug=True)
+    # with app.app_context():
+    #         db.create_all()  # 建立資料表
+    app.run(host='0.0.0.0')
 
 # from flask import Flask, request, jsonify
 # from flask_sqlalchemy import SQLAlchemy
