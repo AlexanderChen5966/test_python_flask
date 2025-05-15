@@ -30,6 +30,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAx
 # mysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@mysql.railway.internal:3306/railway
 
 
+# DB_HOST=containers-xxxxx.railway.internal
+# DB_USER=your_user
+# DB_PASSWORD=your_password
+# DB_NAME=your_database
 
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
