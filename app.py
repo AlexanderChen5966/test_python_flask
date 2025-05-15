@@ -5,7 +5,8 @@ import mysql.connector
 import os
 
 app = Flask(__name__)
-
+app.config['ENV'] = 'production'
+app.config['DEBUG'] = False
 
 # 資料庫連線
 # def get_db():
@@ -117,4 +118,4 @@ def line_reply():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
