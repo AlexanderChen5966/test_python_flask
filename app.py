@@ -10,7 +10,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # 設定資料庫配置（MySQL）
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -19,8 +20,8 @@ LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 
 # 初始化 LINE Bot API 和 WebhookHandler
-line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(LINE_CHANNEL_SECRET)
+# line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
+# handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 初始化 Flasgger
 swagger = Swagger(app)
@@ -176,27 +177,27 @@ def line_reply():
 
 
 # 設置 LINE Webhook 路由
-@app.route("/callback", methods=["POST"])
-def callback():
-    # 確保是 LINE 發來的請求
-    if request.headers["X-Line-Signature"] is None:
-        abort(400)
-
-    body = request.get_data(as_text=True)
-    signature = request.headers["X-Line-Signature"]
-    handler.handle(body, signature)
-
-    return 'OK', 200
+# @app.route("/callback", methods=["POST"])
+# def callback():
+#     # 確保是 LINE 發來的請求
+#     if request.headers["X-Line-Signature"] is None:
+#         abort(400)
+#
+#     body = request.get_data(as_text=True)
+#     signature = request.headers["X-Line-Signature"]
+#     handler.handle(body, signature)
+#
+#     return 'OK', 200
 
 
 # 處理 LINE 訊息
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    # 回覆用戶訊息
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextMessage(text='You have successfully checked in!')
-    )
+# @handler.add(MessageEvent, message=TextMessage)
+# def handle_message(event):
+#     # 回覆用戶訊息
+#     line_bot_api.reply_message(
+#         event.reply_token,
+#         TextMessage(text='You have successfully checked in!')
+#     )
 
 
 # 啟動 Flask 應用

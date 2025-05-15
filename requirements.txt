@@ -1,6 +1,7 @@
 flask
 flasgger
 flask_sqlalchemy
+mysqlclient
 pymysql
 gunicorn
 line-bot-sdk
