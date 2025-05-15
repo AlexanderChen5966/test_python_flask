@@ -1,3 +1,4 @@
-Flask
+flask
 flasgger
-mysql-connector-python
+gunicorn
+
