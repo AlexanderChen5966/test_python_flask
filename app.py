@@ -34,7 +34,13 @@ def get_db():
 
 
 # 建立資料庫表格
-@app.before_first_request
+
+@app.route('/')
+def index():
+    init_db()
+    return "API Running"
+
+# @app.before_first_request
 def init_db():
     conn = get_db()
     cursor = conn.cursor()
