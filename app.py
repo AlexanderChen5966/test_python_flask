@@ -20,7 +20,8 @@ app = Flask(__name__)
 
 def get_db():
     # 從環境變數中獲取資料庫連接字串
-    db_url = os.getenv("MYSQL_URL")  # Railway 會自動設置此環境變數
+    # db_url = os.getenv("MYSQL_URL")  # Railway 會自動設置此環境變數
+    db_url = os.getenv("MYSQL_PUBLIC_URL")
     # 解析 DATABASE_URL 連接字串
     result = urlparse(db_url)
 
