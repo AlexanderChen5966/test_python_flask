@@ -5,15 +5,29 @@ from flasgger import Swagger
 from linebot import LineBotApi, WebhookHandler
 from linebot.models import MessageEvent, TextMessage
 from datetime import datetime
+from dotenv import load_dotenv
+
 
 # 初始化 Flask 應用
 app = Flask(__name__)
+load_dotenv()  # 會自動從根目錄的 .env 檔載入變數
+
 
 # 設定資料庫配置（MySQL）
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
 # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway"
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway'
+# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_PUBLIC_URL')
+
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# SQLAlchemy 預設會嘗試使用 MySQLdb，但這個套件在 Windows 上很難安裝，建議改用 pymysql 或 mysqlclient（較難安裝）。
+# 建議做法： pymysql
+# 變 URI 格式，在前面加上 mysql+pymysql://
+#如果你原本的 .env 是這樣：MYSQL_PUBLIC_URL=mysql://root:password@host:port/dbname
+#要改成MYSQL_PUBLIC_URL=mysql+pymysql://root:password@host:port/dbname
+
+
 db = SQLAlchemy(app)
 
 # 設定 LINE API 的 Token 和 Secret
@@ -204,7 +218,7 @@ def line_reply():
 # 啟動 Flask 應用
 if __name__ == "__main__":
     # with app.app_context():
-    #         db.create_all()  # 建立資料表
+    #     db.create_all()  # 建立資料表
     app.run(host='0.0.0.0')
 
 # from flask import Flask, request, jsonify
