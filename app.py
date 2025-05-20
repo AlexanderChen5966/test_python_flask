@@ -13,14 +13,14 @@ app = Flask(__name__)
 load_dotenv()  # 會自動從根目錄的 .env 檔載入變數
 
 # 設定資料庫配置（POSTGRES SQL）
-# Flasgger文件網址: https://testpythonflask1-production.up.railway.app/apidocs
+# Flasgger文件網址: https://test-python-flask-4hgn.onrender.com/apidocs
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('POSTGRES_PUBLIC_URL')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # 設定 LINE API 的 Token 和 Secret
 # line
-# https://testpythonflask1-production.up.railway.app/callback
+# https://test-python-flask-4hgn.onrender.com/callback
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
 # 初始化 LINE Bot API 和 WebhookHandler
@@ -319,6 +319,6 @@ def handle_message(event):
 
 # 啟動 Flask 應用
 if __name__ == "__main__":
-    # with app.app_context():
-    #     db.create_all()  # 建立資料表
+    with app.app_context():
+        db.create_all()  # 建立資料表
     app.run(host='0.0.0.0')
