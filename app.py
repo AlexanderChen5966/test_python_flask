@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flasgger import Swagger
 from linebot import LineBotApi, WebhookHandler
-from linebot.models import MessageEvent, TextMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -12,39 +12,26 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 load_dotenv()  # 會自動從根目錄的 .env 檔載入變數
 
-
-# 設定資料庫配置（MySQL）
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MYSQL_URI')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
-# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway"
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:LepIwlpQcMsIqKKSMMrSbpSasaEDLywE@caboose.proxy.rlwy.net:56460/railway'
-# app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL','DATABASE_PUBLIC_URL')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('MySQL-lSEL.MYSQL_URL','DATABASE_PUBLIC_URL')
-
-
+# 設定資料庫配置（POSTGRES SQL）
+# Flasgger文件網址: https://testpythonflask1-production.up.railway.app/apidocs
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('POSTGRES_PUBLIC_URL')  # 設定 MySQL 資料庫 URI（從 Railway 取得）
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# SQLAlchemy 預設會嘗試使用 MySQLdb，但這個套件在 Windows 上很難安裝，建議改用 pymysql 或 mysqlclient（較難安裝）。
-# 建議做法： pymysql
-# 變 URI 格式，在前面加上 mysql+pymysql://
-#如果你原本的 .env 是這樣：MYSQL_PUBLIC_URL=mysql://root:password@host:port/dbname
-#要改成MYSQL_PUBLIC_URL=mysql+pymysql://root:password@host:port/dbname
-
-
 db = SQLAlchemy(app)
 
 # 設定 LINE API 的 Token 和 Secret
+# line
+# https://testpythonflask1-production.up.railway.app/callback
 LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
 LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
-
 # 初始化 LINE Bot API 和 WebhookHandler
-# line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
-# handler = WebhookHandler(LINE_CHANNEL_SECRET)
+line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
+handler = WebhookHandler(LINE_CHANNEL_SECRET)
 
 # 初始化 Flasgger
 swagger = Swagger(app)
 
 
 # 定義資料庫模型
-
 # 用戶資料表格
 class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
@@ -191,195 +178,147 @@ def line_reply():
 
     return jsonify({"message": "Reply sent successfully!"})
 
+# 註冊使用者 API
+@app.route('/api/register', methods=['POST'])
+def register_user():
+    """
+    Register a new LINE user
+    ---
+    parameters:
+      - name: line_user_id
+        in: json
+        type: string
+        required: true
+        description: LINE user ID
+      - name: name
+        in: json
+        type: string
+        required: true
+        description: Name of the user
+    responses:
+      200:
+        description: User registration result
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    data = request.get_json()
+    line_user_id = data.get('line_user_id')
+    name = data.get('name')
+
+    if not line_user_id or not name:
+        return jsonify({"message": "Missing line_user_id or name"}), 400
+
+    # 檢查用戶是否已存在
+    existing_user = User.query.filter_by(line_user_id=line_user_id).first()
+
+    if existing_user:
+        return jsonify({"message": "User already registered"}), 200
+
+    # 新增用戶
+    new_user = User(line_user_id=line_user_id, name=name)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+# 查詢所有用戶的 API
+@app.route('/api/users', methods=['GET'])
+def get_users():
+    """
+    Get a list of all registered users
+    ---
+    responses:
+      200:
+        description: A list of all users in the system
+        schema:
+          type: object
+          properties:
+            users:
+              type: array
+              items:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    description: User's unique ID
+                  line_user_id:
+                    type: string
+                    description: User's LINE user ID
+                  name:
+                    type: string
+                    description: User's name
+    """
+    users = User.query.all()
+    user_list = [
+        {"user_id": user.user_id, "line_user_id": user.line_user_id, "name": user.name}
+        for user in users
+    ]
+    return jsonify({"users": user_list})
+
 
 # 設置 LINE Webhook 路由
-# @app.route("/callback", methods=["POST"])
-# def callback():
-#     # 確保是 LINE 發來的請求
-#     if request.headers["X-Line-Signature"] is None:
-#         abort(400)
-#
-#     body = request.get_data(as_text=True)
-#     signature = request.headers["X-Line-Signature"]
-#     handler.handle(body, signature)
-#
-#     return 'OK', 200
+@app.route("/callback", methods=["POST"])
+def callback():
+    # 確保是 LINE 發來的請求
+    if request.headers["X-Line-Signature"] is None:
+        abort(400)
+
+    body = request.get_data(as_text=True)
+    signature = request.headers["X-Line-Signature"]
+    handler.handle(body, signature)
+
+    return 'OK', 200
 
 
 # 處理 LINE 訊息
-# @handler.add(MessageEvent, message=TextMessage)
-# def handle_message(event):
-#     # 回覆用戶訊息
-#     line_bot_api.reply_message(
-#         event.reply_token,
-#         TextMessage(text='You have successfully checked in!')
-#     )
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    line_user_id = event.source.user_id
+    user = User.query.filter_by(line_user_id=line_user_id).first()
 
+    # 如果用戶不存在就註冊
+    if not user:
+        try:
+            profile = line_bot_api.get_profile(line_user_id)
+            display_name = profile.display_name
+        except:
+            display_name = "LINE User"
+        user = User(line_user_id=line_user_id, name=display_name)
+        db.session.add(user)
+        db.session.commit()
+
+    user_id = user.user_id
+    text = event.message.text.strip().lower()
+
+    # 處理不同指令
+    if text == "查詢":
+        checkins = Checkin.query.filter_by(user_id=user_id).all()
+        if checkins:
+            reply = "\n".join([c.checkin_time.strftime("%Y-%m-%d %H:%M:%S") for c in checkins])
+            reply_text = f"📅 你的打卡紀錄：\n{reply}"
+        else:
+            reply_text = "❌ 你還沒有任何打卡紀錄喔。"
+
+    elif text == "打卡":
+        new_checkin = Checkin(user_id=user_id)
+        db.session.add(new_checkin)
+        db.session.commit()
+        reply_text = "✅ 你已成功打卡！"
+
+    else:
+        reply_text = "請輸入『打卡』或『查詢』來使用服務！"
+
+    # 回覆訊息
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_text)
+    )
 
 # 啟動 Flask 應用
 if __name__ == "__main__":
     # with app.app_context():
     #     db.create_all()  # 建立資料表
-    # app.run(host='0.0.0.0')
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
-
-
-
-
-
-# from flask import Flask, request, jsonify
-# from flask_sqlalchemy import SQLAlchemy
-# from flasgger import Swagger
-# import os
-#
-# app = Flask(__name__)
-# swagger = Swagger(app)
-#
-# # 環境變數設定
-# # DB_USER = os.getenv('DB_USER', 'root')
-# # DB_PASSWORD = os.getenv('DB_PASSWORD', '')
-# # DB_HOST = os.getenv('DB_HOST', 'localhost')
-# # DB_NAME = os.getenv('DB_NAME', 'flask_api')
-#
-# # DB_USER = "root"
-# # DB_PASSWORD = "EkvRRMabtntpCBNAxYvmfHsQVhQCMapi"
-# # DB_HOST = "mysql.railway.internal"
-# # DB_NAME = "railway"
-#
-# # DB_HOST=mysql.railway.internal
-# # DB_USER=root
-# # DB_PASSWORD=EkvRRMabtntpCBNAxYvmfHsQVhQCMapi
-# # DB_NAME=railway
-#
-# # SQLAlchemy 資料庫 URI
-# # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
-# app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@switchyard.proxy.rlwy.net:47015/railway'
-# # app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@mysql.railway.internal:3306/railway'
-#
-# # mysql://root:EkvRRMabtntpCBNAxYvmfHsQVhQCMapi@mysql.railway.internal:3306/railway
-#
-#
-# # DB_HOST=containers-xxxxx.railway.internal
-# # DB_USER=your_user
-# # DB_PASSWORD=your_password
-# # DB_NAME=your_database
-#
-#
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-#
-# db = SQLAlchemy(app)
-#
-# # 資料庫模型
-# class User(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), nullable=False)
-#
-# # 路由: GET users
-# @app.route('/users', methods=['GET'])
-# def get_users():
-#     """
-#     Get all users
-#     ---
-#     responses:
-#       200:
-#         description: A list of users
-#     """
-#     users = User.query.all()
-#     return jsonify([{"id": u.id, "name": u.name} for u in users])
-#
-# # 路由: POST user
-# @app.route('/users', methods=['POST'])
-# def add_user():
-#     """
-#     Add a new user
-#     ---
-#     parameters:
-#       - name: user
-#         in: body
-#         required: true
-#         schema:
-#           id: User
-#           required:
-#             - name
-#           properties:
-#             name:
-#               type: string
-#               example: Charlie
-#     responses:
-#       201:
-#         description: User created
-#     """
-#     data = request.get_json()
-#     user = User(name=data['name'])
-#     db.session.add(user)
-#     db.session.commit()
-#     return jsonify({"id": user.id, "name": user.name}), 201
-#
-# # 主程式進入點
-# if __name__ == '__main__':
-#     with app.app_context():
-#         db.create_all()  # 建立資料表
-#     app.run(host='0.0.0.0')
-
-
-
-
-# from flask import Flask, jsonify, request
-# from flasgger import Swagger
-#
-# app = Flask(__name__)
-# swagger = Swagger(app)
-#
-# # 假資料
-# FAKE_DB = [
-#     {"id": 1, "name": "Alice"},
-#     {"id": 2, "name": "Bob"}
-# ]
-#
-# @app.route('/users', methods=['GET'])
-# def get_users():
-#     """
-#     Get all users
-#     ---
-#     responses:
-#       200:
-#         description: A list of users
-#         examples:
-#           application/json: [{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]
-#     """
-#     return jsonify(FAKE_DB)
-#
-# @app.route('/users', methods=['POST'])
-# def add_user():
-#     """
-#     Add a new user
-#     ---
-#     parameters:
-#       - name: user
-#         in: body
-#         required: true
-#         schema:
-#           id: User
-#           required:
-#             - name
-#           properties:
-#             name:
-#               type: string
-#               description: The user's name
-#               example: Charlie
-#     responses:
-#       201:
-#         description: User created
-#         examples:
-#           application/json: {"id":3,"name":"Charlie"}
-#     """
-#     data = request.get_json()
-#     new_user = {
-#         "id": len(FAKE_DB) + 1,
-#         "name": data["name"]
-#     }
-#     FAKE_DB.append(new_user)
-#     return jsonify(new_user), 201
-#
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0')

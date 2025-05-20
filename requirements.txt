@@ -5,3 +5,4 @@ pymysql
 gunicorn
 line-bot-sdk
 python-dotenv
+psycopg2-binary
