@@ -20,9 +20,12 @@ db = SQLAlchemy(app)
 
 # 設定 LINE API 的 Token 和 Secret
 # line
-# https://test-python-flask-4hgn.onrender.com/callback
-LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
-LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
+# https://test-python-flask-4hgn.onrender.com.app/callback
+# LINE_CHANNEL_ACCESS_TOKEN = os.getenv('LINE_CHANNEL_ACCESS_TOKEN')
+# LINE_CHANNEL_SECRET = os.getenv('LINE_CHANNEL_SECRET')
+LINE_CHANNEL_ACCESS_TOKEN = "E3ELJvA7V5jjzWAyDHoN/ttC6VMHY+V2zgwhZHRPD98kxgBo5OCYy+gXuIiCHJQ20eagtJrNtGInHzffSyWg/9OiX8ZVznj8/rPbDcrCIPZbrc9o1tWUGDQbALUElQNkmmpd4RhDJxzW6jLcwzUZmgdB04t89/1O/w1cDnyilFU="
+LINE_CHANNEL_SECRET = "39a8506293131666215364ce4a6cffeb"
+
 # 初始化 LINE Bot API 和 WebhookHandler
 line_bot_api = LineBotApi(LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(LINE_CHANNEL_SECRET)
@@ -319,6 +322,6 @@ def handle_message(event):
 
 # 啟動 Flask 應用
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()  # 建立資料表
+    # with app.app_context():
+    #     db.create_all()  # 建立資料表
     app.run(host='0.0.0.0')
