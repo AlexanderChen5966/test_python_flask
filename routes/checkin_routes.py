@@ -12,6 +12,8 @@ def checkin():
     """
     User check-in API
     ---
+    consumes:
+      - application/json
     parameters:
       - name: line_user_id
         in: json
