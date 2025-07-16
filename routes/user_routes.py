@@ -8,29 +8,29 @@ user_bp = Blueprint('user', __name__)
 # 註冊使用者 API
 @user_bp.route('/register', methods=['POST'])
 def register_user():
-    # """
-    # Register a new LINE user
-    # ---
-    # parameters:
-    #   - name: line_user_id
-    #     in: json
-    #     type: string
-    #     required: true
-    #     description: LINE user ID
-    #   - name: name
-    #     in: json
-    #     type: string
-    #     required: true
-    #     description: Name of the user
-    # responses:
-    #   200:
-    #     description: User registration result
-    #     schema:
-    #       type: object
-    #       properties:
-    #         message:
-    #           type: string
-    # """
+    """
+    Register a new LINE user
+    ---
+    parameters:
+      - name: line_user_id
+        in: json
+        type: string
+        required: true
+        description: LINE user ID
+      - name: name
+        in: json
+        type: string
+        required: true
+        description: Name of the user
+    responses:
+      200:
+        description: User registration result
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
     data = request.get_json()
     line_user_id = data.get('line_user_id')
     name = data.get('name')
