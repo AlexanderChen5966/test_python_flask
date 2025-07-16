@@ -3,6 +3,7 @@ from flask import request, jsonify
 from extensions import db
 from models.user import User
 from models.checkin import Checkin
+from zoneinfo import ZoneInfo  # ✅ Python 3.9+ 支援時區轉換
 
 api = Namespace('Checkin', path='/api')
 
@@ -28,11 +29,18 @@ class CheckinResource(Resource):
         return {"message": "You have successfully checked in!"}
 
 # 設計 GET /api/checkins/{user_id} API
+@api.route('/checkins/<int:user_id>')
 class CheckinList(Resource):
     def get(self, user_id):
         checkins = Checkin.query.filter_by(user_id=user_id).all()
+
         checkin_list = [
-            {"checkin_id": c.checkin_id, "checkin_time": c.checkin_time.isoformat()}
+            {
+                "checkin_id": c.checkin_id,
+                "checkin_time": c.checkin_time.replace(tzinfo=ZoneInfo("UTC"))
+                                                 .astimezone(ZoneInfo("Asia/Taipei"))
+                                                 .isoformat()
+            }
             for c in checkins
         ]
         return {"checkins": checkin_list}
