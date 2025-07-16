@@ -2,8 +2,8 @@ from flask import Blueprint, request, abort
 from linebot import WebhookHandler
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from config import Config
-# from app import db
 from extensions import db
+from zoneinfo import ZoneInfo  # 如果你用 Python 3.9+
 
 from models.user import User
 from models.checkin import Checkin
@@ -53,7 +53,12 @@ def handle_message(event):
     if text == "查詢":
         checkins = Checkin.query.filter_by(user_id=user_id).all()
         if checkins:
-            reply = "\n".join([c.checkin_time.strftime("%Y-%m-%d %H:%M:%S") for c in checkins])
+            # reply = "\n".join([c.checkin_time.strftime("%Y-%m-%d %H:%M:%S") for c in checkins])
+            reply = "\n".join([
+                c.checkin_time.replace(tzinfo=ZoneInfo("UTC")).astimezone(ZoneInfo("Asia/Taipei")).strftime(
+                    "%Y-%m-%d %H:%M:%S")
+                for c in checkins
+            ])
             reply_text = f"📅 你的打卡紀錄：\n{reply}"
         else:
             reply_text = "❌ 你還沒有任何打卡紀錄喔。"
