@@ -14,6 +14,7 @@ webhook_bp = Blueprint('webhook', __name__)
 line_bot_api = LineBotApi(Config.LINE_CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(Config.LINE_CHANNEL_SECRET)
 
+# 設置 LINE Webhook 路由
 @webhook_bp.route("/callback", methods=["POST"])
 def callback():
     signature = request.headers.get("X-Line-Signature")
@@ -29,13 +30,13 @@ def callback():
 
     return "OK", 200
 
-
+# 處理 LINE 訊息
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_user_id = event.source.user_id
     user = User.query.filter_by(line_user_id=line_user_id).first()
 
-    # 自動註冊用戶
+    # 自動註冊用戶，如果用戶不存在就註冊
     if not user:
         try:
             profile = line_bot_api.get_profile(line_user_id)
