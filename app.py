@@ -327,7 +327,7 @@
 
 from flask import Flask
 # from flask_sqlalchemy import SQLAlchemy
-from flasgger import Swagger
+from flask_restx import Api
 
 from config import Config
 from extensions import db  # ✅ 改為從 extensions 匯入
@@ -336,9 +336,12 @@ from extensions import db  # ✅ 改為從 extensions 匯入
 from models import user, checkin, line_reply
 
 # 匯入路由
-from routes.user_routes import user_bp
-from routes.checkin_routes import checkin_bp
-from routes.line_reply_routes import line_reply_bp
+# 載入各 API Namespace
+from routes.user_routes import api as user_ns
+from routes.checkin_routes import api as checkin_ns
+from routes.line_reply_routes import api as reply_ns
+
+# LINE webhook（不是 RESTX 的一部分，可獨立保留）
 from routes.webhook import webhook_bp
 
 # 初始化 Flask App
@@ -346,22 +349,24 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # 初始化資料庫
-# db = SQLAlchemy(app)
 db.init_app(app)  # ✅ 初始化資料庫
 
-# 初始化 Swagger 文件
-swagger = Swagger(app)
+# 初始化 Flask-RESTX API
+api = Api(app, version='1.0', title='Check-in API', doc='/docs')
+
 
 
 # 註冊 Blueprint
-app.register_blueprint(user_bp, url_prefix='/api')
-app.register_blueprint(checkin_bp, url_prefix='/api')
-app.register_blueprint(line_reply_bp, url_prefix='/api')
+# 註冊 RESTX 的 namespace
+api.add_namespace(user_ns)
+api.add_namespace(checkin_ns)
+api.add_namespace(reply_ns)
+
 app.register_blueprint(webhook_bp)
 
 # 啟動應用
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    # app.run(host='0.0.0.0', port=5000)
-    app.run(host='0.0.0.0')
+    app.run(host='0.0.0.0', port=5432)
+    # app.run(host='0.0.0.0')

@@ -1,5 +1,5 @@
 flask
-flasgger
+flask-restx
 flask_sqlalchemy
 pymysql
 gunicorn
